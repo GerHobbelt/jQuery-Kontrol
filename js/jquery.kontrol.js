@@ -91,6 +91,7 @@
                     stopper : true,
                     readOnly : this.$.data('readonly'),
                     noScroll : this.$.data('noScroll'),
+                    className : "kontrol",
 
                     // UI
                     cursor : (this.$.data('cursor') === true && 30)
@@ -103,6 +104,7 @@
                     displayPrevious : this.$.data('displayprevious'),
                     fgColor : this.$.data('fgcolor') || '#87CEEB',
                     inline : false,
+                    opacity: this.$.data('opacity') || 1,
                     //context : {'lineCap' : 'butt'},
 
                     // Hooks
@@ -158,10 +160,10 @@
             this.c = this.$c[0].getContext("2d");
 
             this.$
-                .wrap($('<div style="' + (this.o.inline ? 'display:inline;' : '') +
+                .wrap($('<div class="' + this.o.className + '" style="' + (this.o.inline ? 'display:inline;' : '') +
                         'width:' + this.o.width + 'px;height:' +
                         this.o.height + 'px;"></div>'))
-                .before(this.$c);
+                        .before(this.$c);
 
             if (this.v instanceof Object) {
                 this.cv = {};
@@ -180,15 +182,30 @@
                 ._xy()
                 .init();
 
-            this.isInit = true;
 
             this._draw();
+            this.isInit = true;
 
             return this;
         };
 
+        this._fade = function ( timeout, duration ) {
+          timeout = timeout || 1000
+          duration = duration || 300
+          if( !this.isInit ){
+            s.$c.fadeTo( 0, s.o.opacity ) ;
+            return;
+          }
+          if( s.o.opacity < 1 ){
+            clearTimeout(s.fo);
+            s.$c.fadeTo(0,1);
+            s.fo = setTimeout( function(){ s.$c.fadeTo( duration , s.o.opacity ) }, timeout);
+          }
+        }
         this._draw = function () {
+            
 
+            this._fade();
             // canvas pre-rendering
             var d = true,
                 c = document.createElement('canvas');
@@ -634,6 +651,7 @@
                 , sa, ea                    // Previous angles
                 , r = 1;
 
+            
             c.lineWidth = this.lineWidth;
 
             /*for(o in this.o.context) {
@@ -667,6 +685,7 @@
                 c.strokeStyle = r ? this.o.fgColor : this.fgColor ;
                 c.arc(this.xy, this.xy, this.radius, sat, eat, false);
             c.stroke();
+            
         };
 
         this.cancel = function () {
