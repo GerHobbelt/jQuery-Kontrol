@@ -104,7 +104,9 @@
                     displayPrevious : this.$.data('displayprevious'),
                     fgColor : this.$.data('fgcolor') || '#87CEEB',
                     inline : false,
-                    opacity: this.$.data('opacity') || 1,
+                    fontSizeK: this.$.data('fontSizeK') || 1,
+                    fontWeight: this.$.data('fontWeight') || "bold",
+                    fontFamily: this.$.data('fontWeight') || "Arial",
                     //context : {'lineCap' : 'butt'},
 
                     // Hooks
@@ -144,7 +146,7 @@
                 this.v = this.$.val();
                 (this.v == '') && (this.v = this.o.min);
 
-                this.$.bind(
+                this.$.bind(                             
                     'change'
                     , function () {
                         s.val(s.$.val());
@@ -183,29 +185,14 @@
                 .init();
 
 
-            this._draw();
             this.isInit = true;
+            this._draw();
 
             return this;
         };
 
-        this._fade = function ( timeout, duration ) {
-          timeout = timeout || 1000
-          duration = duration || 300
-          if( !this.isInit ){
-            s.$c.fadeTo( 0, s.o.opacity ) ;
-            return;
-          }
-          if( s.o.opacity < 1 ){
-            clearTimeout(s.fo);
-            s.$c.fadeTo(0,1);
-            s.fo = setTimeout( function(){ s.$c.fadeTo( duration , s.o.opacity ) }, timeout);
-          }
-        }
         this._draw = function () {
             
-
-            this._fade();
             // canvas pre-rendering
             var d = true,
                 c = document.createElement('canvas');
@@ -621,7 +608,7 @@
                         ,'margin-left' : '-' + ((this.o.width * 3 / 4 + 2) >> 0) + 'px'
                         ,'border' : 0
                         ,'background' : 'none'
-                        ,'font' : 'bold ' + ((this.o.width / s) >> 0) + 'px Arial'
+                        ,'font' : this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + this.o.fontFamily
                         ,'text-align' : 'center'
                         ,'color' : this.o.fgColor
                         ,'padding' : '0px'
