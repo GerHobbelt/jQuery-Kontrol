@@ -185,8 +185,8 @@
                 .init();
 
 
-            this.isInit = true;
             this._draw();
+            this.isInit = true;
 
             return this;
         };
