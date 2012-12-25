@@ -608,7 +608,7 @@
                         ,'margin-left' : '-' + ((this.o.width * 3 / 4 + 2) >> 0) + 'px'
                         ,'border' : 0
                         ,'background' : 'none'
-                        ,'font' : this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + this.o.fontFamily
+                        ,'font' : this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + '"' + this.o.fontFamily + '"'
                         ,'text-align' : 'center'
                         ,'color' : this.o.fgColor
                         ,'padding' : '0px'
@@ -687,6 +687,7 @@
                 d.o = o;
                 d.$ = $(this);
                 d.run();
+                d.$.data('kDial', d);
             }
         ).parent();
     };
