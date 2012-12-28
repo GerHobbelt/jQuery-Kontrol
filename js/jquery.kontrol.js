@@ -433,7 +433,6 @@
         };
 
         this.val = function (v) {
-
             if (null != v) {
                this.change( this.normalize(v) );
             } else {
@@ -466,6 +465,7 @@
           var v = this.xy2val(x, y, m); 
           this.pv = v;
           this.change(v);
+          this.v = this.cv;
         }
 
         this.drag = function (x, y, m) {
@@ -665,12 +665,13 @@
 
           if (this.calc(v) != this.calc(this.cv)){ 
             this.cH
-            && (this.cH(this.val()) === false)
+            && (this.cH(calc(v)) === false)
           }
 
-          this.cv = this.v = min( max( v, 0), this.o.period );
+          this.cv = min( max( v, 0), this.o.period );
           this.$.val( this.calc(this.cv) );
           this._draw();
+
         };
 
         this.angle = function (v) {
