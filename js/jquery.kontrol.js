@@ -228,8 +228,6 @@
                             e.originalEvent.touches[s.t].pageY,
                             'touch'
                             );
-
-                s.change(v);
             };
 
             // get touches index
@@ -256,7 +254,6 @@
                             && (s.rH(s.cv) === false)
                         ) return;
 
-                        s.val(s.cv);
                     }
                 );
 
@@ -306,13 +303,10 @@
                     "mouseup.k"
                     , function (e) {
                         k.c.d.unbind('mousemove.k mouseup.k keyup.k');
-
                         if (
                             s.rH
                             && (s.rH(s.cv) === false)
                         ) return;
-
-                        s.change(s.cv);
                     }
                 );
 
