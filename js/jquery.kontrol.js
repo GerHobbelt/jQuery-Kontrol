@@ -665,7 +665,7 @@
 
           if (this.calc(v) != this.calc(this.cv)){ 
             this.cH
-            && (this.cH(calc(v)) === false)
+            && (this.cH(this.calc(v)) === false)
           }
 
           this.cv = min( max( v, 0), this.o.period );
