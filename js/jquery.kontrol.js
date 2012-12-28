@@ -668,7 +668,7 @@
             && (this.cH(this.val()) === false)
           }
 
-          this.cv = v = min( max( v, 0), this.o.period );
+          this.cv = this.v = min( max( v, 0), this.o.period );
           this.$.val( this.calc(this.cv) );
           this._draw();
         };
