@@ -440,7 +440,6 @@
 
         this.val = function (v) {
 
-          console.log('set value', v);
             if (null != v) {
 
                this.change( this.normalize(v) );
@@ -462,9 +461,7 @@
         }
 
         this.calc = function(v){
-          var r = v + this.o.period * this.e + this.o.min;
-          console.log('calc',r);
-          return r;
+          return v + this.o.period * this.e + this.o.min;
         }
 
         this._minStopped =  false,
@@ -697,7 +694,6 @@
                 , r = 1;
 
             
-                console.log(this.cv, a, this.o.period);
             c.lineWidth = this.lineWidth;
 
             /*for(o in this.o.context) {
