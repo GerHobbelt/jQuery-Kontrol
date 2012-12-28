@@ -51,10 +51,9 @@
         this.i = null; // mixed HTMLInputElement or array of HTMLInputElement
         this.g = null; // 2D graphics context for 'pre-rendering'
         this.v = null; // value ; mixed array or integer
+        this.pv = null; // prev original value w/o any transformations;
         this.cv = null; // change value ; not commited value
         this.e = 0; // evolution rate
-        this.ev = 0; // value with evolution considering
-        this.dg = false; // is dragging
         this.x = 0; // canvas x position
         this.y = 0; // canvas y position
         this.mx = 0; // x value of mouse down point of the current mouse move
@@ -153,7 +152,7 @@
                 this.$.bind(                             
                     'change'
                     , function () {
-                        s.val( s.normalize(s.$.val()) );
+                        s.val(s.$.val());
                     }
                 );
             }
@@ -218,24 +217,19 @@
 
         this._touch = function (e) {
 
-            var touchMove = function (e) {
+            var touchMove = function (e, isFirst) {
 
-                var v = s.xy2val(
+                var v = isFirst ? s.tap(
+                            e.originalEvent.touches[s.t].pageX,
+                            e.originalEvent.touches[s.t].pageY,
+                            'touch'
+                            ) : s.drag(
                             e.originalEvent.touches[s.t].pageX,
                             e.originalEvent.touches[s.t].pageY,
                             'touch'
                             );
 
-                if (v == s.cv) return;
-
-                if (
-                    s.cH
-                    && (s.cH(v) === false)
-                ) return;
-
-
                 s.change(v);
-                s._draw();
             };
 
             // get touches index
@@ -247,8 +241,7 @@
             ) return;
 
             // First touch
-            touchMove(e);
-            this.dg = true;
+            touchMove(e, true);
 
             // Touch events listeners
             k.c.d
@@ -272,17 +265,12 @@
 
         this._mouse = function (e) {
 
-            var mouseMove = function (e) {
-                var v = s.xy2val(e.pageX, e.pageY, 'mouse');
-                if (v == s.cv) return;
-
-                if (
-                    s.cH
-                    && (s.cH(v) === false)
-                ) return;
-
-                s.change(v);
-                s._draw();
+            var mouseMove = function (e, isFirst) {
+              if(isFirst){
+                s.tap( e.pageX, e.pageY, 'mouse');
+              }else{
+                s.drag(e.pageX, e.pageY, 'mouse');
+              }
             };
 
             if (
@@ -293,8 +281,7 @@
             // First click
             s.mx = e.pageX;
             s.my = e.pageY;
-            mouseMove(e);
-            this.dg = true;
+            mouseMove(e, true);
 
             // Mouse events listeners
             k.c.d
@@ -325,7 +312,7 @@
                             && (s.rH(s.cv) === false)
                         ) return;
 
-                        s.val(s.cv);
+                        s.change(s.cv);
                     }
                 );
 
@@ -393,8 +380,12 @@
         this.extend = function () {}; // each time configure triggered
         this.init = function () {}; // each time configure triggered
         this.change = function (v) {}; // on change
-        this.val = function (v) {}; // on release
+        this.val = function (v) {}; // on set input value
         this.xy2val = function (x, y, method) {}; //
+        this.tap = function (x, y, method) {}; // single click or touch
+        this.drag = function (x, y, method) {}; // drag or touchmove
+        this.normalize = function (v) {}; //  transform absolute value to relative period-evolution-based value 
+        this.calc= function (v) {}; // transform relative value to absolute
         this.draw = function () {}; // on change / on release
         this.clear = function () { this._clear(); };
 
@@ -411,6 +402,13 @@
         this.copy = function (f, t) {
             for (var i in f) { t[i] = f[i]; }
         };
+
+        this.calc = function(v){
+          return v;
+        }
+        this.normalize= function(v){
+          return v;
+        }
     };
 
 
@@ -442,26 +440,70 @@
 
         this.val = function (v) {
 
-            this.dg = false;
-
+          console.log('set value', v);
             if (null != v) {
-                this.v = this.cv = v;
-                this.$.val(this.ev);
-                this._draw();
+
+               this.change( this.normalize(v) );
+
             } else {
-                return this.v;
+                return this.calc(v);
             }
         };
 
-        
 
         this.normalize = function (v){
-          v = parseInt(v);
-          v = max(min(v, this.o.max), this.o.min);
-          this.e = Math.floor( v / this.o.period );
-          this.ev = v;
-          v = v - this.o.period * this.e;
-          return v;
+          v = max(min( parseInt(v), this.o.max), this.o.min);
+          this.e = Math.ceil( (v - this.o.min)  / this.o.period ) - 1;
+          ( this.e < 0 ) 
+          && (this.e = 0);
+
+          return v - this.o.period * this.e - this.o.min;
+
+        }
+
+        this.calc = function(v){
+          var r = v + this.o.period * this.e + this.o.min;
+          console.log('calc',r);
+          return r;
+        }
+
+        this._minStopped =  false,
+        this._maxStopped =  false,
+
+        this.tap = function (x, y, m) {
+          this._minStopped =  false;
+          this._maxStopped =  false;
+          var v = this.xy2val(x, y, m); 
+          this.pv = v;
+          this.change(v);
+        }
+
+        this.drag = function (x, y, m) {
+          var v = this.xy2val(x, y, m), 
+              out = v,
+              cw = v < this.pv,
+              ccw = v > this.pv,
+              d = Math.abs(v - this.pv),
+              eMax = Math.ceil((this.o.max - this.o.min)/ this.o.period) - 1,
+              isJump = d > this.o.period * 0.9, //detect if cross zero point
+              backflip = isJump && ccw && !this._maxStopped && this.e == 0,
+              frontflip = isJump && !this._minStopped && cw && this.e == eMax ;
+
+
+            if(isJump){
+              if(cw){ this.e + 1 <= eMax && this.e++ } 
+              if(ccw){ this.e > 0 && this.e--}
+              this._maxStopped = false;
+              this._minStopped = false;
+            }
+            if(backflip){ this._minStopped = true; }
+            if(frontflip){ this._maxStopped = true; }
+
+            if(this._minStopped){ out = 0; }
+            if(this._maxStopped){ out = this.o.period;}
+
+          this.pv = v;
+          this.change(out);
         }
 
         this.xy2val = function (x, y, m) {
@@ -486,21 +528,6 @@
 
                 ret = ~~ (0.5 + (a * ( this.o.period ) / this.angleArc));
             }
-
-            var cv = this.evolve(ret);
-
-            if(cv  >= this.o.max){
-              ret = this.o.max - this.o.period * this.e - this.o.min;
-            }
-
-            if(cv <= this.o.min){
-              ret = 0;
-            }
-
-
-            //ret = min( max( ret, this.o.min), this.o.max); 
-            
-            console.log(ret);
             return ret;
         };
 
@@ -518,12 +545,8 @@
                                 ,deltaY = ori.detail || ori.wheelDeltaY
                                 ,v = parseInt(s.$.val()) + (deltaX>0 || deltaY>0 ? 1 : deltaX<0 || deltaY<0 ? -1 : 0);
 
-                            if (
-                                s.cH
-                                && (s.cH(v) === false)
-                            ) return;
 
-                            s.val(s.normalize(v));
+                            s.change(s.normalize(v));
                         }
                 , kval, to, m = 1, kv = {37:-1, 38:1, 39:1, 40:-1};
 
@@ -555,11 +578,7 @@
 
                                 var v = parseInt(s.$.val()) + kv[kc] * m;
 
-                                //s.o.stopper
-                                //&& (v = max(min(v, s.o.max), s.o.min));
-
-                                s.val( s.normalize(v));
-                                s._draw();
+                                s.change( s.normalize(v));
 
                                 // long time keydown speed-up
                                 to = window.setTimeout(
@@ -652,43 +671,21 @@
         };
 
         this.change = function (v) {
-            this.cv = v;
-            this.$.val(this.ev);
+
+          if (this.calc(v) != this.calc(this.cv)){ 
+            this.cH
+            && (this.cH(v) === false)
+          }
+
+          this.cv = v = min( max( v, 0), this.o.period );
+          this.$.val( this.calc(this.cv) );
+          this._draw();
         };
 
         this.angle = function (v) {
-            return (v  ) * this.angleArc / this.o.period;
+            return v * this.angleArc / this.o.period;
         };
 
-        this.evolve = function(v){
- 
-            var d = Math.abs(v - this.cv),
-            isJump = this.dg && d > this.o.period * 0.9,
-            backflip = isJump && this.e == 0 && this.cv < this.o.period / 4,
-            release = v < this.o.period / 4  
-
-
-            if(isJump){
-              if(!backflip){
-                (this.ev > this.o.min)&&( v > this.cv)&&(this.e > 0)&&(this.e--);
-                (this.ev < this.o.max)&&( v < this.cv)&&(this.e++);
-              }else{
-                this.falldown = true;
-              }
-            }
-            if(release || !this.dg){
-              this.falldown = false;
-            }
-            if(this.falldown){
-              this.ev = this.o.min;
-            }else{
-              this.ev = v + this.o.period * this.e + this.o.min;
-            }
-          
-
-          this.ev = max( min(this.ev,this.o.max), this.o.min); 
-          return this.ev
-        }
 
         this.draw = function () {
 
@@ -700,6 +697,7 @@
                 , r = 1;
 
             
+                console.log(this.cv, a, this.o.period);
             c.lineWidth = this.lineWidth;
 
             /*for(o in this.o.context) {
@@ -825,6 +823,8 @@
             }
         };
 
+        this.tap = function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
+        this.drag= function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
         this.xy2val = function (x, y) {
             this.m[0] = max(this.cur2, min(x - this.x, this.o.width - this.cur2));
             this.m[1] = max(this.cur2, min(y - this.y, this.o.height - this.cur2));
@@ -937,6 +937,8 @@
             }
         };
 
+        this.tap = function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
+        this.drag= function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
         this.xy2val = function (x, y) {
             var cw = this.colWidth + this.o.spacing
                 ,val = (
