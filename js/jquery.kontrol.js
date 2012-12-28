@@ -437,7 +437,7 @@
             if (null != v) {
                this.change( this.normalize(v) );
             } else {
-                return this.calc(v);
+               return this.calc(this.v);
             }
 
         };
