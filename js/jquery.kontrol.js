@@ -146,13 +146,13 @@
             } else {
                 // input = integer
                 this.i = this.$;
-                this.v = this.$.val();
-                (this.v == '') && (this.v = this.o.min);
+                this.v = parseInt(this.$.val());
+                isNaN(this.v) && (this.v = this.o.min);
 
                 this.$.bind(                             
                     'change'
                     , function () {
-                        s.val(s.$.val());
+                      s.val(s.$.val());
                     }
                 );
             }
@@ -254,6 +254,10 @@
                             && (s.rH(s.cv) === false)
                         ) return;
 
+                        s.v = s.cv;
+
+
+
                     }
                 );
 
@@ -307,6 +311,8 @@
                             s.rH
                             && (s.rH(s.cv) === false)
                         ) return;
+
+                        s.v = s.cv;
                     }
                 );
 
@@ -378,8 +384,6 @@
         this.xy2val = function (x, y, method) {}; //
         this.tap = function (x, y, method) {}; // single click or touch
         this.drag = function (x, y, method) {}; // drag or touchmove
-        this.normalize = function (v) {}; //  transform absolute value to relative period-evolution-based value 
-        this.calc= function (v) {}; // transform relative value to absolute
         this.draw = function () {}; // on change / on release
         this.clear = function () { this._clear(); };
 
@@ -397,12 +401,8 @@
             for (var i in f) { t[i] = f[i]; }
         };
 
-        this.calc = function(v){
-          return v;
-        }
-        this.normalize= function(v){
-          return v;
-        }
+        this.serialize =  function(v){ return v };
+        this.deserialize =  function(v){ return v };
     };
 
 
@@ -433,26 +433,29 @@
         };
 
         this.val = function (v) {
-            if (null != v) {
-               this.change( this.normalize(v) );
-            } else {
-               return this.calc(this.v);
-            }
+          var SET_ARGS_LENGTH = 1;
 
+          if (arguments.length >= SET_ARGS_LENGTH) {
+            v = parseInt(v);
+            if( isNaN(v) ){ v = 0 }
+            this.change( this.serialize(v) );
+          }else{
+            return this.deserialize(this.v);
+          }
         };
 
 
-        this.normalize = function (v){
-          v = max(min( parseInt(v), this.o.max), this.o.min);
-          this.e = Math.ceil( (v - this.o.min)  / this.o.period ) - 1;
-          ( this.e < 0 ) 
-          && (this.e = 0);
+        this.serialize =  function(v){
+            // save: transforms absolute  value to relative
+            v = max(min( parseInt(v), this.o.max), this.o.min);
+            this.e = Math.ceil( (v - this.o.min)  / this.o.period ) - 1;
+            ( this.e < 0 ) 
+            && (this.e = 0);
+            return v - this.o.period * this.e - this.o.min;
+          };
 
-          return v - this.o.period * this.e - this.o.min;
-
-        }
-
-        this.calc = function(v){
+        this.deserialize = function(v){
+          // restore: transforms relative value to absolute  
           return v + this.o.period * this.e + this.o.min;
         }
 
@@ -465,7 +468,6 @@
           var v = this.xy2val(x, y, m); 
           this.pv = v;
           this.change(v);
-          this.v = this.cv;
         }
 
         this.drag = function (x, y, m) {
@@ -481,8 +483,8 @@
 
 
             if(isJump){
-              if(cw){ this.e + 1 <= eMax && this.e++ } 
-              if(ccw){ this.e > 0 && this.e--}
+              if(cw && !this._minStopped){ this.e + 1 <= eMax && this.e++ } 
+              if(ccw && !this._maxStopped){ this.e > 0 && this.e--}
               this._maxStopped = false;
               this._minStopped = false;
             }
@@ -533,10 +535,10 @@
                             var ori = e.originalEvent
                                 ,deltaX = ori.detail || ori.wheelDeltaX
                                 ,deltaY = ori.detail || ori.wheelDeltaY
-                                ,v = parseInt(s.$.val()) + (deltaX>0 || deltaY>0 ? 1 : deltaX<0 || deltaY<0 ? -1 : 0);
+                                ,v = s.deserialize(s.cv) + (deltaX>0 || deltaY>0 ? 1 : deltaX<0 || deltaY<0 ? -1 : 0);
 
-
-                            s.change(s.normalize(v));
+                            console.log(v,s.cv);
+                            s.val(v);
                         }
                 , kval, to, m = 1, kv = {37:-1, 38:1, 39:1, 40:-1};
 
@@ -566,9 +568,8 @@
                             if ($.inArray(kc,[37,38,39,40]) > -1) {
                                 e.preventDefault();
 
-                                var v = parseInt(s.$.val()) + kv[kc] * m;
-
-                                s.change( s.normalize(v));
+                                var v = s.deserialize(s.cv) + kv[kc] * m;
+                                s.val(v);
 
                                 // long time keydown speed-up
                                 to = window.setTimeout(
@@ -606,10 +607,8 @@
           this.o.period = this.o.period || this.o.max - this.o.min;
           this.o.period = (this.o.period == Number.POSITIVE_INFINITY || this.o.period == Number.NEGATIVE_INFINITY) ? 100 : this.o.period;
 
-            if (
-                this.v < this.o.min
-                || this.v > this.o.max
-            ) this.v = this.o.min;
+            if (isNaN( parseInt(this.v )) || (this.v < this.o.min)){  this.v = this.o.min;}
+            if (this.v > this.o.max ){ this.v = this.o.max; }
 
             this.val(this.v);
 
@@ -662,18 +661,18 @@
         };
 
         this.change = function (v) {
-
-          if (this.calc(v) != this.calc(this.cv)){ 
+          // must recieve only serizlized value (i.e. relative, not absolute )
+          
+          if (this.deserialize(v) != this.deserialize(this.cv)){ 
             this.cH
-            && (this.cH(this.calc(v)) === false)
+            && (this.cH(this.deserialize(v)) === false)
           }else{
             return
           }
-
+          
           this.cv = min( max( v, 0), this.o.period );
-          this.$.val( this.calc(this.cv) );
+          this.$.val( this.deserialize(this.cv) );
           this._draw();
-
         };
 
         this.angle = function (v) {
