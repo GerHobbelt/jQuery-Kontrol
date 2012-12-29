@@ -536,7 +536,6 @@
                                 ,deltaX = ori.detail || ori.wheelDeltaX
                                 ,deltaY = ori.detail || ori.wheelDeltaY
                                 ,v = s.deserialize(s.cv) + (deltaX>0 || deltaY>0 ? 1 : deltaX<0 || deltaY<0 ? -1 : 0);
-
                             s.val(v);
                         }
                 , kval, to, m = 1, kv = {37:-1, 38:1, 39:1, 40:-1};
