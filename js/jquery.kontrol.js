@@ -718,10 +718,11 @@
         };
 
         this._coord = function() {
-            for(var i in this.v) {
-                this.m[i] = ~~ (0.5 + ((this.s[i] * this.v[i] - this.o.min) / this.f[i]) + this.cur2) ;
-                this.p[i] = this.m[i];
+            this.m = {
+                0 : ~~(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
+                1 : ~~(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
             }
+            this.copy(this.m,this.p);
         };
 
         this.init = function () {
