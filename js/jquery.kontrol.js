@@ -530,8 +530,8 @@
             var a, ret;
 
             if ((m === 'mouse') && (this.o.flatMouse)) {
-                a = ((this.my - y) + (x - this.o.period)) / (this.o.height);
-                ret = ~~ (a * this.o.period + parseFloat(this.v));
+                a = ((this.my - y) + (x - this.o.period)) / this.o.height;
+                ret = a * this.o.period + this.v;
             } else {
                 a = Math.atan2(
                     x - (this.x + this.w2),
@@ -545,9 +545,9 @@
                     a += this.PI2;
                 }
 
-                ret = ~~ (0.5 + (a * this.o.period / this.angleArc));
+                ret = 0.5 + (a * this.o.period / this.angleArc);
             }
-            return ret;
+            return this.o.parseVal(ret);
         };
 
         this.listen = function () {
@@ -822,8 +822,8 @@
 
         this._coord = function() {
             this.m = {
-                0: ~~(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
-                1: ~~(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
+                0: parseInt(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
+                1: parseInt(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
             };
             this.copy(this.m, this.p);
         };
@@ -886,8 +886,8 @@
             this.m[1] = max(this.cur2, min(y - this.y, this.o.height - this.cur2));
 
             return {
-                0: ~~ (this.o.min + (this.m[0] - this.cur2) * this.f[0]),
-                1: ~~ (this.o.min + (this.o.height - this.m[1] - this.cur2) * this.f[1])
+                0: parseInt(this.o.min + (this.m[0] - this.cur2) * this.f[0]),
+                1: parseInt(this.o.min + (this.o.height - this.m[1] - this.cur2) * this.f[1])
             };
         };
 
@@ -981,13 +981,11 @@
             );
 
             // initialize colWith
-            if (this.o.cols == 1) {
-                this.o.spacing = 0;
-            }
-            this.colWidth = (((this.o.width - this.o.spacing * this.o.cols) / this.o.cols) >> 0);
+            this.colWidth = Math.floor((this.o.width - this.o.spacing * (this.o.cols - 1)) / this.o.cols);
+            console.log('colWidth = ', this.colWidth, this.o.cols);
 
             if (this.o.displayInput) {
-                this.fontSize = max(~~ (this.colWidth/3), 10);
+                this.fontSize = max(parseInt(this.colWidth / 3), 10);
                 this.o.height -= this.fontSize;
             }
         };
@@ -1003,13 +1001,12 @@
 
         this.xy2val = function (x, y) {
             var cw = this.colWidth + this.o.spacing,
-                val = (
-                        max(this.o.min,
-                            min(this.o.max, - ( - this.mid + (y - this.y)) / this.bar))
-                      ) >> 0,
+                val = max(this.o.min,
+                          min(this.o.max, Math.floor((this.mid - (y - this.y)) / this.bar))
+                      ),
                 ret = {};
 
-            this.col = max(0, min(this.o.cols - 1, ((x - this.x) / cw) >> 0));
+            this.col = max(0, min(this.o.cols - 1, Math.floor((x - this.x) / cw)));
             ret[this.col] = val;
             return ret;
         };
@@ -1023,6 +1020,9 @@
                 var s = this;
                 this.$.css(
                     {
+                        // use relative + absolute positioning for each individual INPUT as that fixes 'slightly off' positioning errors, at least on Chrome. 
+                        position: 'relative',
+                        height: (s.fontSize + 2) + 'px',    // enforce a sufficient height
                         margin: '0px',
                         border: 0,
                         padding: '0px'
@@ -1030,18 +1030,22 @@
                 );
 
                 this.i.each(
-                    function () {
+                    function (idx) {
                         $(this).css(
                             {
-                                width: (s.colWidth - 4 +  s.o.spacing) + 'px',
+                                position: 'absolute',
+                                top: 0,
+                                left: (idx * (s.colWidth + s.o.spacing)) + 'px',
+                                width: (s.colWidth - 4) + 'px',
                                 border: 0,
                                 background: 'none',
                                 font: s.fontSize + 'px Arial', //this.fontSize
                                 color: s.o.fgColor,
-                                margin: '0px',
+                                margin: (idx !== s.o.cols ? '0px ' + s.o.spacing + 'px 0px 0px' : '0px'),
                                 padding: '0px',
                                 '-webkit-appearance': 'none',
-                                'text-align': 'center'
+                                'text-align': 'center',
+
                             }
                         );
                     });
