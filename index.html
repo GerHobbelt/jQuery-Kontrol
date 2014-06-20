@@ -2,23 +2,23 @@
 <html>
     <head>
         <title>jQuery Kontrol</title>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
         <script src="js/jquery.kontrol.js"></script>
         <script>
             $(function() {
-                var $all = $(".dial, .bars1, .bars2, .pad")
-                    , $body = $("body");
+                var $all = $(".dial, .bars1, .bars2, .pad"),
+                    $body = $("body");
 
                 $(".bars1").bars({
-                                    fgColor:"#222222"
-                                    , bgColor:"#EEEEEE"
-                                    /*, change : function (value) {
-                                        console.log("change : ", value);
-                                    }*/
-                                    /*, draw : function () {
-                                        console.log(this.o);
-                                    }*/
-                                });
+                    fgColor:"#222222"
+                    , bgColor:"#EEEEEE"
+                    /*, change: function (value) {
+                        console.log("change : ", value);
+                    }*/
+                    /*, draw: function () {
+                        console.log(this.o);
+                    }*/
+                });
 
                 /*$(".bars2").bars({
                                     fgColor:"#222222"
@@ -26,137 +26,149 @@
                                 });*/
 
                 var $pad = $(".pad")
-                            .xy({
-                                    displayPrevious:false
-                                    , min : -100
-                                    , max : 100
-                                    , fgColor:"#222222"
-                                    , bgColor:"#EEEEEE"
-                                    /*, change : function (value) {
-                                        console.log("change : ", value);
-                                    }*/
-                                })
-                            .css({'border':'5px solid #BBB'});
+                    .xy({
+                        displayPrevious: false
+                        , min: -100
+                        , max: 100
+                        , fgColor: "#222222"
+                        , bgColor: "#EEEEEE"
+                        /*, change: function (value) {
+                            console.log("change : ", value);
+                        }*/
+                    })
+                    .css({
+                        border: '5px solid #BBB'
+                    });
 
                 $(".dial")
-                            .dial({
-                                    fgColor:"#222222"
-                                    , bgColor:"#EEEEEE"
-                                    , thickness : .3
-                                    /*, change : function (value) {
-                                        console.log("change : ", value);
-                                    }*/
-                                })
-                            .css({display:'inline',padding:'0px 10px'});
+                .dial({
+                    fgColor:"#222222"
+                    , bgColor:"#EEEEEE"
+                    , thickness: .3
+                    /*, change: function (value) {
+                        console.log("change : ", value);
+                    }*/
+                })
+                .css({
+                    display: 'inline'
+                    , padding: '0px 10px'
+                });
 
                 var skins = {
-                    skin0 : {
-                        kontrol : {
-                            fgColor:"#87CEEB"
-                            , bgColor:"#EEEEEE"
+                    skin0: {
+                        kontrol: {
+                            fgColor: "#87CEEB"
+                            , bgColor: "#EEEEEE"
                         }
-                        , rack : {
-                            "background-color":"#FFFFFF"
-                            , "color":"#87CEEB"
-                        }
-                    }
-                    , skin1 : {
-                        kontrol : {
-                            fgColor:"#222222"
-                            , bgColor:"#EEEEEE"
-                        }
-                        , rack : {
-                            "background-color":"#FFFFFF"
-                            , "color":"#222222"
+                        , rack: {
+                            "background-color": "#FFFFFF"
+                            , color: "#87CEEB"
                         }
                     }
-                    , skin2 : {
-                        kontrol : {
-                            fgColor:"#FFFFFF"
-                            , bgColor:"#444444"
+                    , skin1: {
+                        kontrol: {
+                            fgColor: "#222222"
+                            , bgColor: "#EEEEEE"
                         }
-                        , rack : {
-                            "background-color":"#222222"
-                            , "color":"#FFFFFF"
-                        }
-                    }
-                    , skin3 : {
-                        kontrol : {
-                            fgColor:"#00FF00"
-                            , bgColor:"#DDDDDD"
-                        }
-                        , rack : {
-                            "background-color":"#FFFFFF"
-                            , "color":"#00FF00"
+                        , rack: {
+                            "background-color": "#FFFFFF"
+                            , color: "#222222"
                         }
                     }
-                    , skin4 : {
-                        kontrol : {
-                            fgColor:"#FF0000"
-                            , bgColor:"#DDDDDD"
+                    , skin2: {
+                        kontrol: {
+                            fgColor: "#FFFFFF"
+                            , bgColor: "#444444"
                         }
-                        , rack : {
-                            "background-color":"#EEEEEE"
-                            , "color":"#FF0000"
+                        , rack: {
+                            "background-color": "#222222"
+                            , color: "#FFFFFF"
+                        }
+                    }
+                    , skin3: {
+                        kontrol: {
+                            fgColor: "#00FF00"
+                            , bgColor: "#DDDDDD"
+                        }
+                        , rack: {
+                            "background-color": "#FFFFFF"
+                            , color: "#00FF00"
+                        }
+                    }
+                    , skin4: {
+                        kontrol: {
+                            fgColor: "#FF0000"
+                            , bgColor: "#DDDDDD"
+                        }
+                        , rack: {
+                            "background-color": "#EEEEEE"
+                            , color: "#FF0000"
                         }
                     }
                 };
 
-                var changeSkin = function(skin) {
+                var changeSkin = function (skin) {
                     $body.css(skin.rack);
                     $all.trigger(
-                            "configure"
-                            , skin.kontrol
-                            );
+                        "configure"
+                        , skin.kontrol
+                    );
                 }
                 
-                $('#skin').bind(
+                $('#skin').on(
                     'change'
                     , function(e) {
                         changeSkin(skins[$(this).find('option:selected').val()]);
                     }
                 );
 
-                $('#displayPrevious').bind(
+                $('#displayPrevious').on(
                     'change'
                     , function(e) {
-                        $all.trigger("configure", {displayPrevious:parseInt($(this).find('option:selected').val())});
+                        $all.trigger("configure", {
+                            displayPrevious: parseInt($(this).find('option:selected').val())
+                        });
                     }
                 );
 
-                $('#cursor').bind(
+                $('#cursor').on(
                     'change'
                     , function(e) {
-                        $all.trigger("configure", {cursor:parseInt($(this).find('option:selected').val())});
+                        $all.trigger("configure", {
+                            cursor: parseInt($(this).find('option:selected').val())
+                        });
                     }
                 );
                 
-                $(".height").bind(
+                $(".height").on(
                     'click'
                     , function(e) {
-                        $all.trigger("configure", {height:100});
+                        $all.trigger("configure", {
+                            height: 100
+                        });
                     }
                 );
 
 
                 var $animBars = $(".bars1"), timeout;
-                $("#animate").bind(
+                $("#animate").on(
                     'click',
                     function() {
-                        if($(this).is(':checked')) {
-                            var  v =  0, s = 'up', i = 0;
-                            var redraw = function () {
+                        if ($(this).is(':checked')) {
+                            var v = 0, s = 'up', i = 0;
 
-                                if(v==15 || v==0) i++;
-                                s = v==15?'down':(v==0?'up':s);
-                                s=='up'?v++:v--;
+                            var redraw = function () {
+                                if (v == 15 || v == 0) 
+                                    i++;
+                                s = (v == 15 ? 'down' : (v == 0 ? 'up' : s));
+                                s == 'up' ? v++ : v--;
 
                                 $animBars
-                                    .find('input:eq('+v+')')
-                                    .val(Math.floor(Math.sin(i+v*i)*100))
+                                    .find('input:eq(' + v + ')')
+                                    .val(Math.floor(Math.sin(i + v * i) * 100))
                                     .trigger('change');
 
-                                timeout = window.setTimeout(redraw, 1000/60);
+                                timeout = window.setTimeout(redraw, 1000 / 60);
                             };
                             redraw();
                         } else {
@@ -166,32 +178,54 @@
             });
         </script>
         <style>
-            body{
-              padding: 0;
-              margin: 0;
-              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-              font-weight: 300;
-              text-rendering: optimizelegibility;
+            body
+            {
+                padding: 0;
+                margin: 0;
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                font-weight: 300;
+                text-rendering: optimizelegibility;
             }
-            p{font-size: 30px; line-height: 30px}
-            div.demo{text-align: center; width: 300px; float: left}
-            div.demo > p{font-size: 20px}
+            p
+            {
+                font-size: 30px; 
+                line-height: 30px
+            }
+            div.demo
+            {
+                text-align: center; 
+                width: 300px; 
+                float: left;
+            }
+            div.demo > p
+            {
+                font-size: 20px;
+            }
 
-            .rack{font:bold 14px;}
-            .opt{
+            .rack
+            {
+                font:bold 14px;
+            }
+            .opt
+            {
                 background:#FFF;
                 -webkit-box-shadow: inset 0 4px 4px -2px #888, inset 0 -4px 4px -2px #888;
                 -moz-box-shadow: inset 0 4px 4px -2px #888, inset 0 -4px 4px -2px #888;
                 box-shadow: inset 0 4px 4px -2px #888, inset 0 -4px 4px -2px #888;
             }
-            .opt div{
-                padding:0px 10px;
-                color:#AAA; font:10px Arial;
+            .opt div
+            {
+                padding: 0px 10px;
+                color: #AAA; 
+                font: 10px Arial;
             }
-            select {
+            select 
+            {
                width: 100px;
-               padding: 5px;font-size: 16px;
-               border: 1px solid #ccc;height: 34px;
+               padding: 5px;
+               font-size: 16px;
+               border: 1px solid #ccc;
+               height: 34px;
             }
         </style>
     </head>
@@ -233,6 +267,10 @@
             </div>
         </div>
         <div class="rack" style="padding:0px 20px">
+            <div style="float:left;width:200px;padding:30px">
+                <div style="margin-bottom:10px">Dial</div>
+                <input class="dial" data-width="180" data-height="180" data-min=-100 data-max=100 value="0">
+            </div>
             <div style="float:left;width:200px;padding:30px">
                 <div style="margin-bottom:10px">Dial</div>
                 <input class="dial" data-width="180" data-height="180" data-min=0 data-max=Infinity data-period=50 value="330">
@@ -299,19 +337,5 @@
             <p style="font-size:20px;">jQuery Kontrol is &copy; 2012 Anthony Terrien and dual licensed under the MIT or GPL licenses.</p>
         </div>
         <div style="border: 0 none; position: absolute; right: 0; top: 0;"><a href="https://github.com/aterrien" target="_blank"><img src="../i/github-ribbon.png" style="border: 0 none;"></a></div>
-        <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-3008949-6']);
-            _gaq.push(['_trackPageview']);
-        </script>
-        <script type="text/javascript">
-            (function() {
-                    var ga = document.createElement('script');
-                    ga.type = 'text/javascript';
-                    ga.async = true;
-                    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
-            })();
-        </script>
     </body>
 </html>

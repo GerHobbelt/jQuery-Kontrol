@@ -79,63 +79,63 @@
                 }
                 s.init();
                 s._configure()
-                 ._draw();
+                ._draw();
             };
 
-            if(this.$.data('kontroled')) return;
+            if (this.$.data('kontroled')) 
+                return;
             this.$.data('kontroled', true);
 
             this.extend();
             this.o = $.extend(
                 {
                     // Config
-                    min : this.$.data('min') || 0,
-                    max : this.$.data('max') || 100,
+                    min: this.$.data('min') || 0,
+                    max: this.$.data('max') || 100,
                     //stopper : true,
                     period: this.$.data('period'),
-                    readOnly : this.$.data('readonly'),
-                    noScroll : this.$.data('noScroll'),
-                    className : "kontrol",
+                    readOnly: this.$.data('readonly'),
+                    noScroll: this.$.data('noScroll'),
+                    className: "kontrol",
 
                     // UI
-                    cursor : (this.$.data('cursor') === true && 30)
+                    cursor: (this.$.data('cursor') === true && 30)
                                 || this.$.data('cursor')
                                 || 0,
-                    thickness : this.$.data('thickness') || 0.35,
-                    width : this.$.data('width') || 200,
-                    height : this.$.data('height') || 200,
-                    displayInput : this.$.data('displayinput') == null || this.$.data('displayinput'),
-                    displayPrevious : this.$.data('displayprevious'),
-                    fgColor : this.$.data('fgcolor') || '#87CEEB',
-                    inline : false,
+                    thickness: this.$.data('thickness') || 0.35,
+                    width: this.$.data('width') || 200,
+                    height: this.$.data('height') || 200,
+                    displayInput: this.$.data('displayinput') == null || this.$.data('displayinput'),
+                    displayPrevious: this.$.data('displayprevious'),
+                    fgColor: this.$.data('fgcolor') || '#87CEEB',
+                    inline: false,
                     fontSizeK: this.$.data('fontSizeK') || 1,
                     fontWeight: this.$.data('fontWeight') || "bold",
                     fontFamily: this.$.data('fontWeight') || "Arial",
-                    //context : {'lineCap' : 'butt'},
+                    //context: {'lineCap' : 'butt'},
 
                     // Hooks
-                    start:null,  // function () {}
-                    draw : null, // function () {}
-                    change : null, // function (value) {}
-                    cancel : null, // function () {}
-                    release : null // function (value) {}
+                    start: null,  // function () {}
+                    draw: null, // function () {}
+                    change: null, // function (value) {}
+                    cancel: null, // function () {}
+                    release: null // function (value) {}
                 }, this.o
             );
 
             // routing value
-            if(this.$.is('fieldset')) {
-
+            if (this.$.is('fieldset')) {
                 // fieldset = array of integer
                 this.v = {};
-                this.i = this.$.find('input')
-                this.i.each(function(k) {
+                this.i = this.$.find('input');
+                this.i.each(function (k) {
                     var $this = $(this);
                     s.i[k] = $this;
                     s.v[k] = $this.val();
 
-                    $this.bind(
-                        'change'
-                        , function () {
+                    $this.on(
+                        'change',
+                        function () {
                             var val = {};
                             val[k] = $this.val();
                             s.val(val);
@@ -143,27 +143,30 @@
                     );
                 });
                 this.$.find('legend').remove();
-
             } else {
                 // input = integer
                 this.i = this.$;
                 this.v = parseInt(this.$.val());
-                isNaN(this.v) && (this.v = this.o.min);
+                if (isNaN(this.v)) {
+                    this.v = this.o.min;
+                }
 
-                this.$.bind(                             
-                    'change'
-                    , function () {
-                      s.val(s.$.val());
+                this.$.on(
+                    'change',
+                    function () {
+                        s.val(s.$.val());
                     }
                 );
             }
 
-            (!this.o.displayInput) && this.$.hide();
+            if (!this.o.displayInput) {
+                this.$.hide();
+            }
 
             this.r = window.devicePixelRatio || 1;
             this.$c = $('<canvas width="' +
-                            this.o.width*this.r + 'px" height="' +
-                            this.o.height*this.r + 'px" style="width:'+
+                            this.o.width * this.r + 'px" height="' +
+                            this.o.height * this.r + 'px" style="width:'+
                             this.o.width + 'px;height:' + this.o.height +
                         'px;"></canvas>');
             this.c = this.$c[0].getContext("2d");
@@ -172,7 +175,7 @@
                 .wrap($('<div class="' + this.o.className + '" style="' + (this.o.inline ? 'display:inline;' : '') +
                         'width:' + this.o.width + 'px;height:' +
                         this.o.height + 'px;"></div>'))
-                        .before(this.$c);
+                .before(this.$c);
 
             if (this.v instanceof Object) {
                 this.cv = {};
@@ -182,9 +185,9 @@
             }
 
             this.$
-                .bind("configure", cf)
+                .on("configure", cf)
                 .parent()
-                .bind("configure", cf);
+                .on("configure", cf);
 
             this._listen()
                 ._configure()
@@ -199,31 +202,31 @@
         };
 
         this._draw = function () {
-            
             // canvas pre-rendering
             var d = true,
                 c = document.createElement('canvas');
 
-            c.width = s.o.width*s.r;
-            c.height = s.o.height*s.r;
+            c.width = s.o.width * s.r;
+            c.height = s.o.height * s.r;
             s.g = c.getContext('2d');
-            
+
             s.clear();
             s.g.scale(s.r, s.r);
 
-            s.dH
-            && (d = s.dH());
+            if (s.dH) {
+                d = s.dH();
+            }
 
-            (d !== false) && s.draw();
+            if (d !== false) {
+                s.draw();
+            }
 
             s.c.drawImage(c, 0, 0);
             c = null;
         };
 
         this._touch = function (e) {
-
             var touchMove = function (e, isFirst) {
-
                 var v = isFirst ? s.tap(
                             e.originalEvent.touches[s.t].pageX,
                             e.originalEvent.touches[s.t].pageY,
@@ -238,31 +241,26 @@
             // get touches index
             this.t = k.c.t(e);
 
-            if (
-                this.sH
-                && (this.sH() === false)
-            ) return;
+            if (this.sH && this.sH() === false) {
+                return;
+            }
 
             // First touch
             touchMove(e, true);
 
             // Touch events listeners
             k.c.d
-                .bind("touchmove.k", touchMove)
-                .bind(
-                    "touchend.k"
-                    , function () {
-                        k.c.d.unbind('touchmove.k touchend.k');
+                .on("touchmove.k", touchMove)
+                .on(
+                    "touchend.k",
+                    function () {
+                        k.c.d.off('touchmove.k touchend.k');
 
-                        if (
-                            s.rH
-                            && (s.rH(s.cv) === false)
-                        ) return;
+                        if (s.rH && s.rH(s.cv) === false) {
+                            return;
+                        }
 
                         s.v = s.cv;
-
-
-
                     }
                 );
 
@@ -270,19 +268,17 @@
         };
 
         this._mouse = function (e) {
-
             var mouseMove = function (e, isFirst) {
-              if(isFirst){
-                s.tap( e.pageX, e.pageY, 'mouse');
-              }else{
-                s.drag(e.pageX, e.pageY, 'mouse');
-              }
+                if (isFirst) {
+                    s.tap(e.pageX, e.pageY, 'mouse');
+                } else {
+                    s.drag(e.pageX, e.pageY, 'mouse');
+                }
             };
 
-            if (
-                this.sH
-                && (this.sH() === false)
-            ) return;
+            if (this.sH && this.sH() === false) {
+                return;
+            }
 
             // First click
             s.mx = e.pageX;
@@ -291,31 +287,30 @@
 
             // Mouse events listeners
             k.c.d
-                .bind("mousemove.k", mouseMove)
-                .bind(
+                .on("mousemove.k", mouseMove)
+                .on(
                     // Escape key cancel current change
-                    "keyup.k"
-                    , function (e) {
+                    "keyup.k",
+                    function (e) {
                         if (e.keyCode === 27) {
-                            k.c.d.unbind("mouseup.k mousemove.k keyup.k");
+                            k.c.d.off("mouseup.k mousemove.k keyup.k");
 
-                            if (
-                                s.eH
-                                && (s.eH() === false)
-                            ) return;
+                            if (s.eH && s.eH() === false) {
+                                return;
+                            }
 
                             s.cancel();
                         }
                     }
                 )
-                .bind(
-                    "mouseup.k"
-                    , function (e) {
-                        k.c.d.unbind('mousemove.k mouseup.k keyup.k');
-                        if (
-                            s.rH
-                            && (s.rH(s.cv) === false)
-                        ) return;
+                .on(
+                    "mouseup.k",
+                    function (e) {
+                        k.c.d.off('mousemove.k mouseup.k keyup.k');
+
+                        if (s.rH && s.rH(s.cv) === false) {
+                            return;
+                        }
 
                         s.v = s.cv;
                     }
@@ -332,22 +327,21 @@
         };
 
         this._listen = function () {
-
             if (!this.o.readOnly) {
                 this.$c
-                    .bind(
-                        "mousedown"
-                        , function (e) {
+                    .on(
+                        "mousedown",
+                        function (e) {
                             e.preventDefault();
                             s._xy()._mouse(e);
-                         }
+                        }
                     )
-                    .bind(
-                        "touchstart"
-                        , function (e) {
+                    .on(
+                        "touchstart",
+                        function (e) {
                             e.preventDefault();
                             s._xy()._touch(e);
-                         }
+                        }
                     );
                 this.listen();
             } else {
@@ -358,17 +352,21 @@
         };
 
         this._configure = function () {
-
             // Hooks
-            if (this.o.start) this.sH = this.o.start;
-            if (this.o.draw) this.dH = this.o.draw;
-            if (this.o.change) this.cH = this.o.change;
-            if (this.o.cancel) this.eH = this.o.cancel;
-            if (this.o.release) this.rH = this.o.release;
+            if (this.o.start) 
+                this.sH = this.o.start;
+            if (this.o.draw) 
+                this.dH = this.o.draw;
+            if (this.o.change) 
+                this.cH = this.o.change;
+            if (this.o.cancel) 
+                this.eH = this.o.cancel;
+            if (this.o.release) 
+                this.rH = this.o.release;
 
             if (this.o.displayPrevious) {
-                this.pColor = this.h2rgba(this.o.fgColor, "0.4");
-                this.fgColor = this.h2rgba(this.o.fgColor, "0.6");
+                this.pColor = this.h2rgba(this.o.fgColor, 0.4);
+                this.fgColor = this.h2rgba(this.o.fgColor, 0.6);
             } else {
                 this.fgColor = this.o.fgColor;
             }
@@ -385,29 +383,37 @@
         this.extend = function () {}; // each time configure triggered
         this.init = function () {}; // each time configure triggered
         this.change = function (v) {}; // on change
-        this.val = function (v) {}; // on set input value
+        this.val = function (v) {}; // on release
         this.xy2val = function (x, y, method) {}; //
         this.tap = function (x, y, method) {}; // single click or touch
         this.drag = function (x, y, method) {}; // drag or touchmove
         this.draw = function () {}; // on change / on release
-        this.clear = function () { this._clear(); };
+        this.clear = function () { 
+            this._clear(); 
+        };
 
         // Utils
         this.h2rgba = function (h, a) {
             var rgb;
-            h = h.substring(1,7)
-            rgb = [parseInt(h.substring(0,2),16)
-                   ,parseInt(h.substring(2,4),16)
-                   ,parseInt(h.substring(4,6),16)];
+            h = h.substring(1, 7);
+            rgb = [parseInt(h.substring(0, 2), 16)
+                   ,parseInt(h.substring(2, 4), 16)
+                   ,parseInt(h.substring(4, 6), 16)];
             return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")";
         };
 
         this.copy = function (f, t) {
-            for (var i in f) { t[i] = f[i]; }
+            for (var i in f) { 
+                t[i] = f[i]; 
+            }
         };
 
-        this.serialize =  function(v){ return v };
-        this.deserialize =  function(v){ return v };
+        this.serialize = function (v) { 
+            return v; 
+        };
+        this.deserialize = function (v) { 
+            return v;
+        };
     };
 
 
@@ -423,107 +429,124 @@
         this.lineWidth = null;
         this.cursorExt = null;
         this.w2 = null;
-        this.PI2 = 2*Math.PI;
+        this.PI2 = 2 * Math.PI;
 
         this.extend = function () {
             this.o = $.extend(
                 {
-                    bgColor : this.$.data('bgcolor') || '#EEEEEE',
-                    angleOffset : this.$.data('angleoffset') || 0,
-                    angleArc : this.$.data('anglearc') || 360,
-                    flatMouse : this.$.data('flatMouse'),
-                    inline : true
+                    bgColor: this.$.data('bgcolor') || '#EEEEEE',
+                    angleOffset: this.$.data('angleoffset') || 0,
+                    angleArc: this.$.data('anglearc') || 360,
+                    flatMouse: this.$.data('flatMouse'),
+                    inline: true
                 }, this.o
             );
         };
 
         this.val = function (v) {
-          var SET_ARGS_LENGTH = 1;
+            var SET_ARGS_LENGTH = 1;
 
-          if (arguments.length >= SET_ARGS_LENGTH) {
-            v = parseInt(v);
-            if( isNaN(v) ){ v = 0 }
-            this.change( this.serialize(v) );
-          }else{
-            return this.deserialize(this.v);
-          }
+            if (arguments.length >= SET_ARGS_LENGTH) {
+                v = parseInt(v);
+                if (isNaN(v)) { 
+                    v = 0; 
+                }
+                this.change(this.serialize(v));
+            } else {
+                return this.deserialize(this.v);
+            }
         };
 
 
-        this.serialize =  function(v){
+        this.serialize = function (v) {
             // save: transforms absolute  value to relative
-            v = max(min( parseInt(v), this.o.max), this.o.min);
-            this.e = Math.ceil( (v - this.o.min)  / this.o.period ) - 1;
-            ( this.e < 0 ) 
-            && (this.e = 0);
+            v = max(min(parseInt(v), this.o.max), this.o.min);
+            this.e = Math.ceil((v - this.o.min) / this.o.period) - 1;
+            if (this.e < 0) {
+                this.e = 0;
+            }
             return v - this.o.period * this.e - this.o.min;
-          };
+        };
 
-        this.deserialize = function(v){
-          // restore: transforms relative value to absolute  
-          return v + this.o.period * this.e + this.o.min;
-        }
+        this.deserialize = function (v) {
+            // restore: transforms relative value to absolute  
+            return v + this.o.period * this.e + this.o.min;
+        };
 
         this._minStopped =  false,
         this._maxStopped =  false,
 
         this.tap = function (x, y, m) {
-          this._minStopped =  false;
-          this._maxStopped =  false;
-          var v = this.xy2val(x, y, m); 
-          this.pv = v;
-          this.change(v);
-        }
+            this._minStopped =  false;
+            this._maxStopped =  false;
+            var v = this.xy2val(x, y, m); 
+            this.pv = v;
+            this.change(v);
+        };
 
         this.drag = function (x, y, m) {
-          var v = this.xy2val(x, y, m), 
-              out = v,
-              cw = v < this.pv,
-              ccw = v > this.pv,
-              d = Math.abs(v - this.pv),
-              eMax = Math.ceil((this.o.max - this.o.min)/ this.o.period) - 1,
-              isJump = d > this.o.period * 0.9, //detect if cross zero point
-              backflip = isJump && ccw && !this._maxStopped && this.e == 0,
-              frontflip = isJump && !this._minStopped && cw && this.e == eMax ;
+            var v = this.xy2val(x, y, m), 
+                out = v,
+                cw = v < this.pv,
+                ccw = v > this.pv,
+                d = Math.abs(v - this.pv),
+                eMax = Math.ceil((this.o.max - this.o.min) / this.o.period) - 1,
+                isJump = d > this.o.period * 0.9, //detect if cross zero point
+                backflip = isJump && ccw && !this._maxStopped && this.e == 0,
+                frontflip = isJump && !this._minStopped && cw && this.e == eMax;
 
-
-            if(isJump){
-              if(cw && !this._minStopped){ this.e + 1 <= eMax && this.e++ } 
-              if(ccw && !this._maxStopped){ this.e > 0 && this.e--}
-              this._maxStopped = false;
-              this._minStopped = false;
+            if (isJump) {
+                if (cw && !this._minStopped) { 
+                    if (this.e + 1 <= eMax) {
+                        this.e++; 
+                    }
+                } 
+                if (ccw && !this._maxStopped) {
+                    if (this.e > 0) {
+                        this.e--;
+                    }
+                }
+                this._maxStopped = false;
+                this._minStopped = false;
             }
-            if(backflip){ this._minStopped = true; }
-            if(frontflip){ this._maxStopped = true; }
+            if (backflip) { 
+                this._minStopped = true; 
+            }
+            if (frontflip) { 
+                this._maxStopped = true; 
+            }
 
-            if(this._minStopped){ out = 0; }
-            if(this._maxStopped){ out = this.o.period;}
+            if (this._minStopped) { 
+                out = 0; 
+            }
+            if (this._maxStopped) { 
+                out = this.o.period;
+            }
 
-          this.pv = v;
-          this.change(out);
-        }
+            this.pv = v;
+            this.change(out);
+        };
 
         this.xy2val = function (x, y, m) {
-
             var a, ret;
 
             if ((m === 'mouse') && (this.o.flatMouse)) {
-                a = ((this.my - y) + (x - this.o.period )) / (this.o.height);
+                a = ((this.my - y) + (x - this.o.period)) / (this.o.height);
                 ret = ~~ (a * this.o.period + parseFloat(this.v));
             } else {
                 a = Math.atan2(
-                    x - (this.x + this.w2)
-                    , - (y - this.y - this.w2)
+                    x - (this.x + this.w2),
+                    - (y - this.y - this.w2)
                 ) - this.angleOffset;
 
-                if(this.angleArc != this.PI2 && (a < 0) && (a > -0.5)) {
+                if (this.angleArc != this.PI2 && a < 0 && a > -0.5) {
                     // if isset angleArc option, set to min if .5 under min
                     a = 0;
                 } else if (a < 0) {
                     a += this.PI2;
                 }
 
-                ret = ~~ (0.5 + (a * ( this.o.period ) / this.angleArc));
+                ret = ~~ (0.5 + (a * this.o.period / this.angleArc));
             }
             return ret;
         };
@@ -532,43 +555,51 @@
             // bind MouseWheel
             var s = this,
                 mw = function (e) {
-                            if(s.o.noScroll)
-                                return;
+                    if (s.o.noScroll)
+                        return;
 
-                            e.preventDefault();
+                    e.preventDefault();
 
-                            var ori = e.originalEvent
-                                ,deltaX = ori.detail || ori.wheelDeltaX
-                                ,deltaY = ori.detail || ori.wheelDeltaY
-                                ,v = s.deserialize(s.cv) + (deltaX>0 || deltaY>0 ? 1 : deltaX<0 || deltaY<0 ? -1 : 0);
-                            s.val(v);
-                        }
-                , kval, to, m = 1, kv = {37:-1, 38:1, 39:1, 40:-1};
+                    var ori = e.originalEvent,
+                        deltaX = ori.detail || ori.wheelDeltaX,
+                        deltaY = ori.detail || ori.wheelDeltaY,
+                        v = s.deserialize(s.cv) + (deltaX > 0 || deltaY > 0 ? 1 : deltaX < 0 || deltaY < 0 ? -1 : 0);
+                    s.val(v);
+                },
+                kval, to, 
+                m = 1, 
+                kv = {
+                    37: -1, 
+                    38: 1, 
+                    39: 1, 
+                    40: -1
+                };
 
             this.$
-                .bind(
-                    "keydown"
-                    ,function (e) {
-
+                .on(
+                    "keydown",
+                    function (e) {
                         var kc = e.keyCode;
 
                         // numpad support
-                        if(kc >= 96 && kc <= 105) {
+                        if (kc >= 96 && kc <= 105) {
                             kc = e.keyCode = kc - 48;
                         }
 
                         kval = parseInt(String.fromCharCode(kc));
 
                         if (isNaN(kval)) {
-
-                            (kc !== 13)         // enter
-                            && (kc !== 8)       // bs
-                            && (kc !== 9)       // tab
-                            && (kc !== 189)     // -
-                            && e.preventDefault();
-
+                            if (
+                                   kc !== 13         // enter
+                                && kc !== 8          // bs
+                                && kc !== 9          // tab
+                                && kc !== 189        // -
+                            ) {
+                                e.preventDefault();
+                            }
+                            
                             // arrows
-                            if ($.inArray(kc,[37,38,39,40]) > -1) {
+                            if ($.inArray(kc, [37, 38, 39, 40]) > -1) {
                                 e.preventDefault();
 
                                 var v = s.deserialize(s.cv) + kv[kc] * m;
@@ -576,16 +607,18 @@
 
                                 // long time keydown speed-up
                                 to = window.setTimeout(
-                                    function () { m*=1.2; }
-                                    ,30
+                                    function () { 
+                                        m *= 1.2; 
+                                    },
+                                    30
                                 );
                             }
                         }
                     }
                 )
-                .bind(
-                    "keyup"
-                    ,function (e) {
+                .on(
+                    "keyup",
+                    function (e) {
                         if (isNaN(kval)) {
                             if (to) {
                                 window.clearTimeout(to);
@@ -598,20 +631,23 @@
                             //(s.$.val() > s.o.max && s.$.val(s.o.max))
                             //|| (s.$.val() < s.o.min && s.$.val(s.o.min));
                         }
-
                     }
                 );
 
-            this.$c.bind("mousewheel DOMMouseScroll", mw);
-            this.$.bind("mousewheel DOMMouseScroll", mw)
+            this.$c.on("mousewheel DOMMouseScroll", mw);
+            this.$.on("mousewheel DOMMouseScroll", mw);
         };
 
         this.init = function () {
-          this.o.period = this.o.period || this.o.max - this.o.min;
-          this.o.period = (this.o.period == Number.POSITIVE_INFINITY || this.o.period == Number.NEGATIVE_INFINITY) ? 100 : this.o.period;
+            this.o.period = (this.o.period || this.o.max - this.o.min);
+            this.o.period = (this.o.period == Number.POSITIVE_INFINITY || this.o.period == Number.NEGATIVE_INFINITY) ? 100 : this.o.period;
 
-            if (isNaN( parseInt(this.v )) || (this.v < this.o.min)){  this.v = this.o.min;}
-            if (this.v > this.o.max ){ this.v = this.o.max; }
+            if (isNaN(parseInt(this.v)) || (this.v < this.o.min)) {  
+                this.v = this.o.min;
+            }
+            if (this.v > this.o.max) { 
+                this.v = this.o.max; 
+            }
 
             this.val(this.v);
 
@@ -621,11 +657,13 @@
             this.lineWidth = this.xy * this.o.thickness;
             this.radius = this.xy - this.lineWidth / 2;
 
-            this.o.angleOffset
-            && (this.o.angleOffset = isNaN(this.o.angleOffset) ? 0 : this.o.angleOffset);
+            if (this.o.angleOffset) {
+                this.o.angleOffset = isNaN(this.o.angleOffset) ? 0 : this.o.angleOffset;
+            }
 
-            this.o.angleArc
-            && (this.o.angleArc = isNaN(this.o.angleArc) ? this.PI2 : this.o.angleArc);
+            if (this.o.angleArc) {
+                this.o.angleArc = isNaN(this.o.angleArc) ? this.PI2 : this.o.angleArc;
+            }
 
             // deg to rad
             this.angleOffset = this.o.angleOffset * Math.PI / 180;
@@ -636,72 +674,76 @@
             this.endAngle = 1.5 * Math.PI + this.angleOffset + this.angleArc;
 
             var s = max(
-                            String(Math.abs(this.o.max)).length
-                            , String(Math.abs(this.o.min)).length
-                            , 2
-                            ) + 2;
+                    String(Math.abs(this.o.max)).length,
+                    String(Math.abs(this.o.min)).length,
+                    2
+                ) + 2;
 
             this.o.displayInput
-                && this.i.css({
-                        'width' : ((this.o.width / 2 + 4) >> 0) + 'px'
-                        ,'height' : ((this.o.width / 3) >> 0) + 'px'
-                        ,'position' : 'absolute'
-                        ,'vertical-align' : 'middle'
-                        ,'margin-top' : ((this.o.width / 3) >> 0) + 'px'
-                        ,'margin-left' : '-' + ((this.o.width * 3 / 4 + 2) >> 0) + 'px'
-                        ,'border' : 0
-                        ,'background' : 'none'
-                        ,'font' : this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + '"' + this.o.fontFamily + '"'
-                        ,'text-align' : 'center'
-                        ,'color' : this.o.fgColor
-                        ,'padding' : '0px'
-                        ,'-webkit-appearance': 'none'
-                        })
-                || this.i.css({
-                        'width' : '0px'
-                        ,'visibility' : 'hidden'
-                        });
+                && this.i.css(
+                    {
+                        width: ((this.o.width / 2 + 4) >> 0) + 'px',
+                        height: ((this.o.width / 3) >> 0) + 'px',
+                        position: 'absolute',
+                        'vertical-align': 'middle',
+                        'margin-top': ((this.o.width / 3) >> 0) + 'px',
+                        'margin-left': '-' + ((this.o.width * 3 / 4 + 2) >> 0) + 'px',
+                        border: 0,
+                        background: 'none',
+                        font: this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + '"' + this.o.fontFamily + '"',
+                        'text-align': 'center',
+                        color: this.o.fgColor,
+                        padding: '0px',
+                        '-webkit-appearance': 'none'
+                    }
+                )
+                || this.i.css(
+                    {
+                        width: '0px',
+                        visibility: 'hidden'
+                    }
+                );
         };
 
         this.change = function (v) {
-          // must recieve only serizlized value (i.e. relative, not absolute )
+            // must recieve only serialized value (i.e. relative, not absolute)
           
-          if (this.deserialize(v) != this.deserialize(this.cv)){ 
-            this.cH
-            && (this.cH(this.deserialize(v)) === false)
-          }else{
-            return
-          }
+            if (this.deserialize(v) != this.deserialize(this.cv)) { 
+                if (this.cH) {
+                    this.cH(this.deserialize(v));
+                }
+            } else {
+                return;
+            }
           
-          this.cv = min( max( v, 0), this.o.period );
-          this.$.val( this.deserialize(this.cv) );
-          this._draw();
+            this.cv = min(max(v, 0), this.o.period);
+            this.$.val(this.deserialize(this.cv));
+            this._draw();
         };
 
         this.angle = function (v) {
             return v * this.angleArc / this.o.period;
         };
 
-
         this.draw = function () {
-
             var c = this.g,                 // context
-                a = this.angle(this.cv)    // Angle
-                , sat = this.startAngle     // Start angle
-                , eat = sat + a             // End angle
-                , sa, ea                    // Previous angles
-                , r = 1;
+                a = this.angle(this.cv),    // Angle
+                sat = this.startAngle,      // Start angle
+                eat = sat + a,              // End angle
+                sa, ea,                     // Previous angles
+                r = 1;
 
-            
             c.lineWidth = this.lineWidth;
 
             /*for(o in this.o.context) {
                 c[o] = this.o.context[o];
             }*/
 
-            this.o.cursor
-                && (sat = eat - this.cursorExt)
-                && (eat = eat + this.cursorExt);
+            if (this.o.cursor) {
+                sat = eat - this.cursorExt;
+                // N.B.: the original Smart Alec code style only did the next line when: sat != 0
+                eat = eat + this.cursorExt;
+            }
 
             c.beginPath();
                 c.strokeStyle = this.o.bgColor;
@@ -711,9 +753,11 @@
             if (this.o.displayPrevious) {
                 ea = this.startAngle + this.angle(this.v);
                 sa = this.startAngle;
-                this.o.cursor
-                    && (sa = ea - this.cursorExt)
-                    && (ea = ea + this.cursorExt);
+                if (this.o.cursor) {
+                    sa = ea - this.cursorExt;
+                    // N.B.: the original Smart Alec code style only did the next line when: sa != 0
+                    ea = ea + this.cursorExt;
+                }
 
                 c.beginPath();
                     c.strokeStyle = this.pColor;
@@ -723,10 +767,9 @@
             }
 
             c.beginPath();
-                c.strokeStyle = r ? this.o.fgColor : this.fgColor ;
+                c.strokeStyle = (r ? this.o.fgColor : this.fgColor);
                 c.arc(this.xy, this.xy, this.radius, sat, eat, false);
             c.stroke();
-            
         };
 
         this.cancel = function () {
@@ -756,7 +799,10 @@
         this.m = [];
         this.p = [];
         this.f = []; // factor
-        this.s = {0:1,1:-1};
+        this.s = {
+            0: 1, 
+            1: -1
+        };
         this.cur2 = 0;
         this.cursor = 0;
         this.v = {};
@@ -765,20 +811,20 @@
         this.extend = function () {
             this.o = $.extend(
                 {
-                    min : this.$.data('min') || 0,
-                    max : this.$.data('max') || 100,
-                    width : this.$.data('width') || 200,
-                    height : this.$.data('height') || 200
+                    min: this.$.data('min') || 0,
+                    max: this.$.data('max') || 100,
+                    width: this.$.data('width') || 200,
+                    height: this.$.data('height') || 200
                 }, this.o
             );
         };
 
         this._coord = function() {
             this.m = {
-                0 : ~~(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
-                1 : ~~(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
-            }
-            this.copy(this.m,this.p);
+                0: ~~(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
+                1: ~~(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
+            };
+            this.copy(this.m, this.p);
         };
 
         this.init = function () {
@@ -792,42 +838,55 @@
                 this._coord();
             }
 
-            if(this.o.displayInput) {
+            if (this.o.displayInput) {
                 var s = this;
-                this.$.css({
-                        'margin-top' : '-30px'
-                        , 'border' : 0
-                        , 'font' : '11px Arial'
-                        });
+                this.$.css(
+                    {
+                        'margin-top': '-30px',
+                        border: 0,
+                        font: '11px Arial'
+                    }
+                );
 
                 this.i.each(
-                    function (){
-                        $(this).css({
-                            'width' : (s.o.width / 4) + 'px'
-                            ,'border' : 0
-                            ,'background' : 'none'
-                            ,'color' : s.o.fgColor
-                            ,'padding' : '0px'
-                            ,'-webkit-appearance': 'none'
-                            });
+                    function () {
+                        $(this).css(
+                            {
+                                width: (s.o.width / 4) + 'px',
+                                border: 0,
+                                background: 'none',
+                                color: s.o.fgColor,
+                                padding: '0px',
+                                '-webkit-appearance': 'none'
+                            }
+                        );
                     });
             } else {
-                this.$.css({
-                        'width' : '0px'
-                        ,'visibility' : 'hidden'
-                        });
+                this.$.css(
+                    {
+                        width: '0px',
+                        visibility: 'hidden'
+                    }
+                );
             }
         };
 
-        this.tap = function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
-        this.drag= function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
+        this.tap = function (x, y) { 
+            this.change(this.xy2val(x, y)); 
+            this._draw();
+        };
+        this.drag = function (x, y) { 
+            this.change(this.xy2val(x, y)); 
+            this._draw();
+        };
+
         this.xy2val = function (x, y) {
             this.m[0] = max(this.cur2, min(x - this.x, this.o.width - this.cur2));
             this.m[1] = max(this.cur2, min(y - this.y, this.o.height - this.cur2));
 
             return {
-                0 : ~~ (this.o.min + (this.m[0] - this.cur2) * this.f[0]),
-                1 : ~~ (this.o.min + (this.o.height - this.m[1] - this.cur2) * this.f[1])
+                0: ~~ (this.o.min + (this.m[0] - this.cur2) * this.f[0]),
+                1: ~~ (this.o.min + (this.o.height - this.m[1] - this.cur2) * this.f[1])
             };
         };
 
@@ -858,9 +917,8 @@
         };
 
         this.draw = function () {
-
-            var c = this.g
-                , r = 1;
+            var c = this.g,
+                r = 1;
 
             if (this.o.displayPrevious) {
                 c.beginPath();
@@ -874,7 +932,7 @@
 
             c.beginPath();
             c.lineWidth = this.cursor;
-            c.strokeStyle = r  ? this.o.fgColor : this.fgColor;
+            c.strokeStyle = (r ? this.o.fgColor : this.fgColor);
             c.moveTo(this.m[0], this.m[1] + this.cur2);
             c.lineTo(this.m[0], this.m[1] - this.cur2);
             c.stroke();
@@ -892,7 +950,6 @@
         ).parent();
     };
 
-
     /**
      * k.Bars
      */
@@ -907,80 +964,93 @@
         this.displayMidLine = false;
 
         this.extend = function () {
-
             this.o = $.extend(
                 {
-                    min : this.$.data('min') || 0,
-                    max : this.$.data('max') || 100,
-                    width : this.$.data('width') || 600,
-                    displayInput : this.$.data('displayinput') == null || this.$.data('displayinput'),
-                    height : (this.$.data('height') || 200),
-                    fgColor : this.$.data('fgcolor') || '#87CEEB',
-                    bgColor : this.$.data('bgcolor') || '#CCCCCC',
-                    cols : this.$.data('cols') || 8,
-                    spacing : this.$.data('spacing') || 1
-                }
-                ,this.o
+                    min: this.$.data('min') || 0,
+                    max: this.$.data('max') || 100,
+                    width: this.$.data('width') || 600,
+                    displayInput: this.$.data('displayinput') == null || this.$.data('displayinput'),
+                    height: (this.$.data('height') || 200),
+                    fgColor: this.$.data('fgcolor') || '#87CEEB',
+                    bgColor: this.$.data('bgcolor') || '#CCCCCC',
+                    cols: this.$.data('cols') || 8,
+                    spacing: this.$.data('spacing') || 1
+                },
+                this.o
             );
 
             // initialize colWith
-            (this.o.cols == 1) && (this.o.spacing = 0);
+            if (this.o.cols == 1) {
+                this.o.spacing = 0;
+            }
             this.colWidth = (((this.o.width - this.o.spacing * this.o.cols) / this.o.cols) >> 0);
 
-            if(this.o.displayInput) {
+            if (this.o.displayInput) {
                 this.fontSize = max(~~ (this.colWidth/3), 10);
                 this.o.height -= this.fontSize;
             }
         };
 
-        this.tap = function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
-        this.drag= function(x,y){ this.change(this.xy2val(x,y)); this._draw()}
-        this.xy2val = function (x, y) {
-            var cw = this.colWidth + this.o.spacing
-                ,val = (
-                        max(this.o.min
-                        , min(this.o.max, - ( - this.mid + (y - this.y)) / this.bar))
-                       ) >> 0
-                ,ret = {};
+        this.tap = function (x, y) { 
+            this.change(this.xy2val(x, y)); 
+            this._draw();
+        };
+        this.drag = function(x, y) { 
+            this.change(this.xy2val(x, y)); 
+            this._draw();
+        };
 
-            this.col = max(0, min(this.o.cols-1, ((x - this.x) / cw) >> 0));
+        this.xy2val = function (x, y) {
+            var cw = this.colWidth + this.o.spacing,
+                val = (
+                        max(this.o.min,
+                            min(this.o.max, - ( - this.mid + (y - this.y)) / this.bar))
+                      ) >> 0,
+                ret = {};
+
+            this.col = max(0, min(this.o.cols - 1, ((x - this.x) / cw) >> 0));
             ret[this.col] = val;
             return ret;
         };
 
         this.init = function () {
-
             this.bar = this.o.height / (this.o.max - this.o.min);
             this.mid = (this.o.max * this.bar) >> 0;
             this.displayMidLine = this.o.cursor && this.o.min < 0;
 
-            if(this.o.displayInput) {
+            if (this.o.displayInput) {
                 var s = this;
-                this.$.css({
-                        'margin' : '0px'
-                        ,'border' : 0
-                        ,'padding' : '0px'
-                        });
+                this.$.css(
+                    {
+                        margin: '0px',
+                        border: 0,
+                        padding: '0px'
+                    }
+                );
 
                 this.i.each(
-                    function (){
-                        $(this).css({
-                            'width' : (s.colWidth - 4 +  s.o.spacing) + 'px'
-                            ,'border' : 0
-                            ,'background' : 'none'
-                            ,'font' : s.fontSize+'px Arial' //this.fontSize
-                            ,'color' : s.o.fgColor
-                            ,'margin' : '0px'
-                            ,'padding' : '0px'
-                            ,'-webkit-appearance': 'none'
-                            ,'text-align' : 'center'
-                            });
+                    function () {
+                        $(this).css(
+                            {
+                                width: (s.colWidth - 4 +  s.o.spacing) + 'px',
+                                border: 0,
+                                background: 'none',
+                                font: s.fontSize + 'px Arial', //this.fontSize
+                                color: s.o.fgColor,
+                                margin: '0px',
+                                padding: '0px',
+                                '-webkit-appearance': 'none',
+                                'text-align': 'center'
+                            }
+                        );
                     });
             } else {
-                this.$.css({
-                        'width' : '0px'
-                        ,'visibility' : 'hidden'
-                        });
+                this.$.css(
+                    {
+                        width: '0px',
+                        visibility: 'hidden'
+                    }
+                );
             }
         };
 
@@ -1013,7 +1083,6 @@
         };
 
         this._bar = function (col) {
-
             var x = (col * (this.colWidth + this.o.spacing) + this.colWidth / 2);
 
             if (this.displayMidLine) {
@@ -1054,15 +1123,15 @@
             if (this.col) {
                 // current col
                 this.c.clearRect(
-                    this.col * (this.colWidth + this.o.spacing) * this.r
-                    , 0
-                    , (this.colWidth + this.o.spacing) * this.r
-                    , this.o.height * this.r
+                    this.col * (this.colWidth + this.o.spacing) * this.r,
+                    0,
+                    (this.colWidth + this.o.spacing) * this.r,
+                    this.o.height * this.r
                 );
             } else {
                 this._clear();
             }
-        }
+        };
 
         this.draw = function () {
             if (this.col) {
