@@ -51,13 +51,13 @@
         this.i = null; // mixed HTMLInputElement or array of HTMLInputElement
         this.g = null; // 2D graphics context for 'pre-rendering'
         this.v = null; // value ; mixed array or integer
-        this.pv = null; // prev original value w/o any transformations;
-        this.cv = null; // change value ; not commited value
+        this.pv = null; // prev original value w/o any transformations
+        this.cv = null; // change value ; uncommitted value
         this.e = 0; // evolution rate
         this.x = 0; // canvas x position
         this.y = 0; // canvas y position
         this.mx = 0; // x value of mouse down point of the current mouse move
-        this.my = 0; // y value of mouse down point of the current mose move
+        this.my = 0; // y value of mouse down point of the current mouse move
         this.r = 1; // cached devicePixelRatio
         this.$c = null; // jQuery canvas element
         this.c = null; // rendered canvas context
@@ -96,7 +96,7 @@
                     period: this.$.data('period'),
                     readOnly: this.$.data('readonly'),
                     noScroll: this.$.data('noScroll'),
-                    className: "kontrol",
+                    className: 'kontrol',
 
                     // UI
                     cursor: (this.$.data('cursor') === true && 30)
@@ -110,9 +110,10 @@
                     fgColor: this.$.data('fgcolor') || '#87CEEB',
                     inline: false,
                     fontSizeK: this.$.data('fontSizeK') || 1,
-                    fontWeight: this.$.data('fontWeight') || "bold",
-                    fontFamily: this.$.data('fontWeight') || "Arial",
+                    fontWeight: this.$.data('fontWeight') || 'bold',
+                    fontFamily: this.$.data('fontWeight') || 'Arial',
                     //context: {'lineCap' : 'butt'},
+                    parseVal: parseInt,
 
                     // Hooks
                     start: null,  // function () {}
@@ -146,7 +147,7 @@
             } else {
                 // input = integer
                 this.i = this.$;
-                this.v = parseInt(this.$.val());
+                this.v = this.o.parseVal(this.$.val());
                 if (isNaN(this.v)) {
                     this.v = this.o.min;
                 }
@@ -154,7 +155,7 @@
                 this.$.on(
                     'change',
                     function () {
-                        s.val(s.$.val());
+                        s.val(s.o.parseVal(s.$.val()));
                     }
                 );
             }
@@ -169,7 +170,7 @@
                             this.o.height * this.r + 'px" style="width:'+
                             this.o.width + 'px;height:' + this.o.height +
                         'px;"></canvas>');
-            this.c = this.$c[0].getContext("2d");
+            this.c = this.$c[0].getContext('2d');
 
             this.$
                 .wrap($('<div class="' + this.o.className + '" style="' + (this.o.inline ? 'display:inline;' : '') +
@@ -185,9 +186,9 @@
             }
 
             this.$
-                .on("configure", cf)
+                .on('configure', cf)
                 .parent()
-                .on("configure", cf);
+                .on('configure', cf);
 
             this._listen()
                 ._configure()
@@ -250,9 +251,9 @@
 
             // Touch events listeners
             k.c.d
-                .on("touchmove.k", touchMove)
+                .on('touchmove.k', touchMove)
                 .on(
-                    "touchend.k",
+                    'touchend.k',
                     function () {
                         k.c.d.off('touchmove.k touchend.k');
 
@@ -287,13 +288,13 @@
 
             // Mouse events listeners
             k.c.d
-                .on("mousemove.k", mouseMove)
+                .on('mousemove.k', mouseMove)
                 .on(
                     // Escape key cancel current change
-                    "keyup.k",
+                    'keyup.k',
                     function (e) {
                         if (e.keyCode === 27) {
-                            k.c.d.off("mouseup.k mousemove.k keyup.k");
+                            k.c.d.off('mouseup.k mousemove.k keyup.k');
 
                             if (s.eH && s.eH() === false) {
                                 return;
@@ -304,7 +305,7 @@
                     }
                 )
                 .on(
-                    "mouseup.k",
+                    'mouseup.k',
                     function (e) {
                         k.c.d.off('mousemove.k mouseup.k keyup.k');
 
@@ -330,14 +331,14 @@
             if (!this.o.readOnly) {
                 this.$c
                     .on(
-                        "mousedown",
+                        'mousedown',
                         function (e) {
                             e.preventDefault();
                             s._xy()._mouse(e);
                         }
                     )
                     .on(
-                        "touchstart",
+                        'touchstart',
                         function (e) {
                             e.preventDefault();
                             s._xy()._touch(e);
@@ -399,7 +400,7 @@
             rgb = [parseInt(h.substring(0, 2), 16)
                    ,parseInt(h.substring(2, 4), 16)
                    ,parseInt(h.substring(4, 6), 16)];
-            return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")";
+            return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
         };
 
         this.copy = function (f, t) {
@@ -444,10 +445,8 @@
         };
 
         this.val = function (v) {
-            var SET_ARGS_LENGTH = 1;
-
-            if (arguments.length >= SET_ARGS_LENGTH) {
-                v = parseInt(v);
+            if (v != null) {
+                v = this.o.parseVal(v);
                 if (isNaN(v)) { 
                     v = 0; 
                 }
@@ -459,8 +458,8 @@
 
 
         this.serialize = function (v) {
-            // save: transforms absolute  value to relative
-            v = max(min(parseInt(v), this.o.max), this.o.min);
+            // save: transforms absolute value to relative
+            v = max(min(this.o.parseVal(v), this.o.max), this.o.min);
             this.e = Math.ceil((v - this.o.min) / this.o.period) - 1;
             if (this.e < 0) {
                 this.e = 0;
@@ -564,7 +563,7 @@
                         deltaX = ori.detail || ori.wheelDeltaX,
                         deltaY = ori.detail || ori.wheelDeltaY,
                         v = s.deserialize(s.cv) + (deltaX > 0 || deltaY > 0 ? 1 : deltaX < 0 || deltaY < 0 ? -1 : 0);
-                    s.val(v);
+                    s.val(s.o.parseVal(v));
                 },
                 kval, to, 
                 m = 1, 
@@ -577,7 +576,7 @@
 
             this.$
                 .on(
-                    "keydown",
+                    'keydown',
                     function (e) {
                         var kc = e.keyCode;
 
@@ -602,7 +601,7 @@
                             if ($.inArray(kc, [37, 38, 39, 40]) > -1) {
                                 e.preventDefault();
 
-                                var v = s.deserialize(s.cv) + kv[kc] * m;
+                                var v = s.o.parseVal(s.deserialize(s.cv) + kv[kc] * m);
                                 s.val(v);
 
                                 // long time keydown speed-up
@@ -617,7 +616,7 @@
                     }
                 )
                 .on(
-                    "keyup",
+                    'keyup',
                     function (e) {
                         if (isNaN(kval)) {
                             if (to) {
@@ -634,22 +633,24 @@
                     }
                 );
 
-            this.$c.on("mousewheel DOMMouseScroll", mw);
-            this.$.on("mousewheel DOMMouseScroll", mw);
+            this.$c.on('mousewheel DOMMouseScroll', mw);
+            this.$.on('mousewheel DOMMouseScroll', mw);
         };
 
         this.init = function () {
             this.o.period = (this.o.period || this.o.max - this.o.min);
             this.o.period = (this.o.period == Number.POSITIVE_INFINITY || this.o.period == Number.NEGATIVE_INFINITY) ? 100 : this.o.period;
 
-            if (isNaN(parseInt(this.v)) || (this.v < this.o.min)) {  
-                this.v = this.o.min;
+            var cv = this.o.parseVal(this.v);
+            if (isNaN(cv) || (cv < this.o.min)) {  
+                cv = this.o.min;
             }
-            if (this.v > this.o.max) { 
-                this.v = this.o.max; 
+            if (cv > this.o.max) { 
+                cv = this.o.max; 
             }
 
-            this.val(this.v);
+            this.v = cv;
+            this.val(cv);
 
             this.w2 = this.o.width / 2;
             this.cursorExt = this.o.cursor / 100;
@@ -690,7 +691,7 @@
                         'margin-left': '-' + ((this.o.width * 3 / 4 + 2) >> 0) + 'px',
                         border: 0,
                         background: 'none',
-                        font: this.o.fontWeight +' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + '"' + this.o.fontFamily + '"',
+                        font: this.o.fontWeight + ' ' + ((this.o.width / s) * this.o.fontSizeK >> 0) + 'px ' + '"' + this.o.fontFamily + '"',
                         'text-align': 'center',
                         color: this.o.fgColor,
                         padding: '0px',
@@ -706,7 +707,7 @@
         };
 
         this.change = function (v) {
-            // must recieve only serialized value (i.e. relative, not absolute)
+            // must receive only serialized value (i.e. relative, not absolute)
           
             if (this.deserialize(v) != this.deserialize(this.cv)) { 
                 if (this.cH) {
@@ -922,19 +923,19 @@
 
             if (this.o.displayPrevious) {
                 c.beginPath();
-                c.lineWidth = this.cursor;
-                c.strokeStyle = this.pColor;
-                c.moveTo(this.p[0], this.p[1] + this.cur2);
-                c.lineTo(this.p[0], this.p[1] - this.cur2);
+                    c.lineWidth = this.cursor;
+                    c.strokeStyle = this.pColor;
+                    c.moveTo(this.p[0], this.p[1] + this.cur2);
+                    c.lineTo(this.p[0], this.p[1] - this.cur2);
                 c.stroke();
                 r = (this.cv[0] == this.v[0] && this.cv[1] == this.v[1]);
             }
 
             c.beginPath();
-            c.lineWidth = this.cursor;
-            c.strokeStyle = (r ? this.o.fgColor : this.fgColor);
-            c.moveTo(this.m[0], this.m[1] + this.cur2);
-            c.lineTo(this.m[0], this.m[1] - this.cur2);
+                c.lineWidth = this.cursor;
+                c.strokeStyle = (r ? this.o.fgColor : this.fgColor);
+                c.moveTo(this.m[0], this.m[1] + this.cur2);
+                c.lineTo(this.m[0], this.m[1] - this.cur2);
             c.stroke();
         };
     };
@@ -1087,35 +1088,35 @@
 
             if (this.displayMidLine) {
                 this.g.beginPath();
-                this.g.lineWidth = this.colWidth;
-                this.g.strokeStyle = this.o.fgColor;
-                this.g.moveTo(x, this.mid);
-                this.g.lineTo(x, this.mid + 1);
+                    this.g.lineWidth = this.colWidth;
+                    this.g.strokeStyle = this.o.fgColor;
+                    this.g.moveTo(x, this.mid);
+                    this.g.lineTo(x, this.mid + 1);
                 this.g.stroke();
             }
 
             if (this.o.displayPrevious) {
                 this.g.beginPath();
-                this.g.lineWidth = this.colWidth;
-                this.g.strokeStyle = (this.cv[col] == this.v[col]) ? this.o.fgColor : this.pColor;
-                if (this.o.cursor) {
-                    this.g.lineTo(x, this.mid - ((this.v[col] * this.bar) >> 0) + this.o.cursor / 2);
-                } else {
-                    this.g.moveTo(x, this.mid);
-                }
-                this.g.lineTo(x, this.mid - ((this.v[col] * this.bar) >> 0) - this.o.cursor / 2);
+                    this.g.lineWidth = this.colWidth;
+                    this.g.strokeStyle = (this.cv[col] == this.v[col]) ? this.o.fgColor : this.pColor;
+                    if (this.o.cursor) {
+                        this.g.lineTo(x, this.mid - ((this.v[col] * this.bar) >> 0) + this.o.cursor / 2);
+                    } else {
+                        this.g.moveTo(x, this.mid);
+                    }
+                    this.g.lineTo(x, this.mid - ((this.v[col] * this.bar) >> 0) - this.o.cursor / 2);
                 this.g.stroke();
             }
 
             this.g.beginPath();
-            this.g.lineWidth = this.colWidth;
-            this.g.strokeStyle = this.fgColor;
-            if (this.o.cursor) {
-                this.g.lineTo(x, this.mid - ((this.cv[col] * this.bar) >> 0) + this.o.cursor / 2);
-            } else {
-                this.g.moveTo(x, this.mid);
-            }
-            this.g.lineTo(x, this.mid - ((this.cv[col] * this.bar) >> 0) - this.o.cursor / 2);
+                this.g.lineWidth = this.colWidth;
+                this.g.strokeStyle = this.fgColor;
+                if (this.o.cursor) {
+                    this.g.lineTo(x, this.mid - ((this.cv[col] * this.bar) >> 0) + this.o.cursor / 2);
+                } else {
+                    this.g.moveTo(x, this.mid);
+                }
+                this.g.lineTo(x, this.mid - ((this.cv[col] * this.bar) >> 0) - this.o.cursor / 2);
             this.g.stroke();
         };
 

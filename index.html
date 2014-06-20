@@ -45,6 +45,9 @@
                     fgColor:"#222222"
                     , bgColor:"#EEEEEE"
                     , thickness: .3
+                    , parseVal: function (v) {
+                        return Math.round(parseFloat(v));
+                    }
                     /*, change: function (value) {
                         console.log("change : ", value);
                     }*/
@@ -272,7 +275,7 @@
                 <input class="dial" data-width="180" data-height="180" data-min=-100 data-max=100 value="0">
             </div>
             <div style="float:left;width:200px;padding:30px">
-                <div style="margin-bottom:10px">Dial</div>
+                <div style="margin-bottom:10px">Dial (multiturn)</div>
                 <input class="dial" data-width="180" data-height="180" data-min=0 data-max=Infinity data-period=50 value="330">
             </div>
             <div style="float:left;width:200px;padding:30px">
