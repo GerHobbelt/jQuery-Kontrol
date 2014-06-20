@@ -71,7 +71,8 @@
         this.rH = null; // release hook
 
         this.run = function () {
-            var cf = function (e, conf) {
+            var r = window.devicePixelRatio || 1, 
+                cf = function (e, conf) {
                 var k;
                 for (k in conf) {
                     s.o[k] = conf[k];
@@ -160,8 +161,10 @@
             (!this.o.displayInput) && this.$.hide();
 
             this.$c = $('<canvas width="' +
-                            this.o.width + 'px" height="' +
-                            this.o.height + 'px"></canvas>');
+                            this.o.width*r + 'px" height="' +
+                            this.o.height*r + 'px" style="width:'+
+                            this.o.width + 'px;height:' + this.o.height +
+                        'px;"></canvas>');
             this.c = this.$c[0].getContext("2d");
 
             this.$
@@ -198,13 +201,15 @@
             
             // canvas pre-rendering
             var d = true,
-                c = document.createElement('canvas');
+                c = document.createElement('canvas'),
+                r = window.devicePixelRatio || 1;
 
-            c.width = s.o.width;
-            c.height = s.o.height;
+            c.width = s.o.width*r;
+            c.height = s.o.height*r;
             s.g = c.getContext('2d');
-
+            
             s.clear();
+            s.g.scale(r, r);
 
             s.dH
             && (d = s.dH());
@@ -769,10 +774,11 @@
         };
 
         this._coord = function() {
-            for(var i in this.v) {
-                this.m[i] = ~~ (0.5 + ((this.s[i] * this.v[i] - this.o.min) / this.f[i]) + this.cur2) ;
-                this.p[i] = this.m[i];
+            this.m = {
+                0 : ~~(this.cur2 + (this.v[0] - this.o.min) / this.f[0]),
+                1 : ~~(-((this.v[1] - this.o.min) / this.f[1] + this.cur2 - this.o.height))
             }
+            this.copy(this.m,this.p);
         };
 
         this.init = function () {
